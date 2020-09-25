@@ -16,53 +16,95 @@ const initGrid=function(){
 const updateBoard=function(game){
     console.log('_________');
     const tilesCollection=game.tilesCollectionOrderByDirection;//updated tiles info
-    console.log(tilesCollection);
+
     
 
     const tilesContainer=document.getElementById('tiles-container');
     let tilesElements=tilesContainer.childNodes;
     
     for (let tileInfo of tilesCollection){
-        let lastLocation=tileInfo.lastLocation;
-        
-        
-        
+        if (Array.isArray(tileInfo)){//if that's a megred tile
+            for (let tile of tileInfo){//here tileInfo is an array of 2 merged tiles plus a new one (example: 8,8,16)
+                let lastLocation=tile.lastLocation;
+                if (lastLocation!==null){
+                    let lastLocationStr=(`tile-location-${lastLocation.column}-${lastLocation.row}`);
+                    for (let tileElement of tilesElements){
+                        for (let className of tileElement.classList){
+                            if(className===lastLocationStr){
+                                tileElement.classList.remove(className);
+                                let newLocationStr=`tile-location-${tile.column}-${tile.row}`;
+                                tileElement.classList.add(newLocationStr);
+                            }    
+                        }
+                    }
+                }
+                else{//new merge
+                    
+                    createMergedTile(tile);
+                }
+                
+            }
+        }
+        else{//if regular
+            let lastLocation=tileInfo.lastLocation;
             let lastLocationStr=(`tile-location-${lastLocation.column}-${lastLocation.row}`);
-
-            console.log("Last:", lastLocationStr);
-            
             for (let tileElement of tilesElements){
-                // console.log(tileElement.classList);
                 for (let className of tileElement.classList){
-
                     if(className===lastLocationStr){
-                        console.log("Last:", lastLocationStr);
                         tileElement.classList.remove(className);
-                        
                         let newLocationStr=`tile-location-${tileInfo.column}-${tileInfo.row}`;
                         tileElement.classList.add(newLocationStr);
-                        // console.log("New:",newLocationStr);
-                    }
-                    
-                        
+                    }    
                 }
-            
             }
+        }
         
-        
-        
-            // console.log(tilesElements);
     }
 
     
 }
+
+const cleanMergedTiles=function(gameBoardArray){
+    //remove class 'tile-merged'
+    //remove the tiles that created the merged tile
+    let removeElements=[];
+    for (let row=0;row<=3;row++){
+        for(let column=0;column<=3;column++){//run all over the board
+            let currentCell=gameBoardArray[row][column];
+            if (currentCell!==null){//if tile
+                if(Array.isArray(currentCell)){//if array
+                    let tile=currentCell[0];
+                            let locationStr=(`tile-location-${tile.column}-${tile.row}`);
+                            const tilesContainer=document.getElementById('tiles-container');
+                            for (let tileElement of tilesContainer.childNodes){
+                                if(tileElement.classList.contains(locationStr)){
+                                    if(!(tileElement.classList.contains('merged-tile'))){
+                                        removeElements.push(tileElement);
+                                    }
+                                }
+                            }
+                     
+                }
+            }
+              
+        }
+    }
+    for (let element of removeElements){
+        element.remove();
+    }
+    const tilesContainer=document.getElementById('tiles-container');
+    for (let tileElement of tilesContainer.childNodes){
+        tileElement.classList.remove('merged-tile');
+    }
+}
+
 const cleanNewTileClass=function(){
     const tilesContainer=document.getElementById('tiles-container');
     for (let tileElement of tilesContainer.childNodes){
         tileElement.classList.remove(`new-tile`);
     }
 }
-const updateNewTile=function(game){
+const createNewTile=function(game){
     cleanNewTileClass();
     const tilesCollection=game.getTilesCollection();//updated tiles info
     const tilesContainer=document.getElementById('tiles-container');
@@ -75,7 +117,10 @@ const updateNewTile=function(game){
             tile.classList.add(`tile`);
             tile.classList.add(`tile-${tileInfo.value}`);
             tile.classList.add(`tile-location-${tileInfo.column}-${tileInfo.row}`);
-            tile.classList.add(`new-tile`);
+            // if (tileInfo.isMerged)
+            //     tile.classList.add(`merged-tile`);
+            // else
+                tile.classList.add(`new-tile`);
 
             const tileInternal=document.createElement('div');
             tileInternal.innerHTML=parseInt(tileInfo.value);
@@ -85,6 +130,36 @@ const updateNewTile=function(game){
         }
     }
 }
+
+const createMergedTile=function(tile){
+    let locationStr=(`tile-location-${tile.column}-${tile.row}`);
+    const tilesContainer=document.getElementById('tiles-container');
+    const newTileElement=document.createElement('div');
+    newTileElement.classList.add(`tile`);
+    newTileElement.classList.add(`tile-${tile.value}`);
+    newTileElement.classList.add(locationStr);
+    newTileElement.classList.add(`merged-tile`);
+
+    const tileInternal=document.createElement('div');
+    tileInternal.innerHTML=parseInt(tile.value);
+    tileInternal.classList.add('tile-internal');
+    newTileElement.appendChild(tileInternal);
+    tilesContainer.appendChild(newTileElement);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -130,7 +205,7 @@ function logic(){
     this.isCellEmpty=function(location){
         let row = location.row;
         let column = location.column;
-        return !(this.gameBoard[row][column] instanceof Tile);
+        return !((this.gameBoard[row][column] instanceof Tile) || (Array.isArray(this.gameBoard[row][column])));
     }
     this.removeTile=function(location){
         this.gameBoard[location.row][location.column]=null;
@@ -143,8 +218,74 @@ function logic(){
     this.getTile=function(location){
         return this.gameBoard[location.row][location.column];
     }
-    
-    this.moveSingle=function(direction,location,){
+    //Reduce
+    this.reduceSingle=function(direction,location){
+        let newRow,newColumn;
+
+        switch (direction){
+            case directions.RIGHT:
+                newRow = location.row;
+                newColumn = location.column+1;
+                break;
+            case directions.LEFT:
+                newRow = location.row;
+                newColumn = location.column-1;
+                break;
+            case directions.UP:
+                newRow = location.row-1;
+                newColumn = location.column;
+                break;
+            case directions.DOWN:
+                newRow = location.row+1;
+                newColumn = location.column;
+                break;
+        }
+        
+        let newLocation={row: newRow,column: newColumn};
+        if ((newColumn>3 || newColumn<0 || newRow>3 || newRow<0) ||
+        (!this.isCellEmpty(newLocation))){
+            return;
+        }
+
+        if (this.isCellEmpty(newLocation)){
+            let tile=this.getTile(location);
+            if (Array.isArray(tile)){
+                for (let subTile of tile){//here tile is an array of 3 tiles (example: 8,8,16)
+                    subTile.updateTileLocation(newLocation);
+                }
+            }
+            else{
+                tile.updateTileLocation(newLocation);
+            }
+            this.addTile(tile,newLocation);
+            this.removeTile(location);
+            this.reduceSingle(direction,newLocation);//REC
+        }
+        
+    }
+    this.reduceAll=function(direction){
+
+        
+        while(this.isReduceAvailableByDirection(direction)){
+            for (let row=0;row<=3;row++){
+                for (let column=0;column<=3;column++){
+                    let currentLocation={row: row,column: column}
+                    if(!this.isCellEmpty(currentLocation)){
+
+                           this.reduceSingle(direction,currentLocation);
+
+                       
+                    }
+                }
+            }
+            
+        }
+        this.updateTilesCollectionOrderedByDirection(direction);
+    }
+
+
+    //Merge
+    this.mergeSingle=function(direction,location){
         let newRow,newColumn;
 
         switch (direction){
@@ -167,41 +308,104 @@ function logic(){
         }
         
         if ((newColumn>3 || newColumn<0 || newRow>3 || newRow<0) ||
-        (!this.isCellEmpty({row: newRow,column: newColumn}))){
+        (this.isCellEmpty({row: newRow,column: newColumn}))){
             return;
         }
-
-        if (this.isCellEmpty({row: newRow,column: newColumn})){
-            let tile=this.getTile(location);
-            tile.updateTileLocation({row: newRow,column: newColumn});
-            this.addTile(tile,{row: newRow,column: newColumn});
-            this.removeTile(location);
-            this.moveSingle(direction,{row: newRow,column: newColumn});//REC
-        }
         
+        const adjacentLocation={row: newRow,column: newColumn};
+        let currentTile=this.getTile(location);
+        let adjacentTile=this.getTile(adjacentLocation);
+        
+        if (Array.isArray(currentTile) || Array.isArray(adjacentTile))//can't merge tiles that already merged
+            return;
+        if (parseInt(currentTile.value)===parseInt(adjacentTile.value)){
+            this.mergeTiles(currentTile,adjacentTile,adjacentLocation);
+            console.log("Merged!");
+        }
+
     }
-
-    this.moveAll=function(direction){
-        this.updateAllTilesLastLocation();
-        while(this.isDirectionMoveAvailable(direction)){
-            for (let row=0;row<=3;row++){
+    this.mergeTiles=function(oneTile,secondTile,mergingLocation){
+        //get 2 tiles and place them into an array with a new merged tile
+        //and - remove 2 tiles from his last positions
+        let tilesArray=[];
+        const newValue=(parseInt(oneTile.value))*2;
+        let mergedTile=new Tile(mergingLocation,newValue);
+        mergedTile.isMerged=true;
+        tilesArray.push(mergedTile,oneTile,secondTile);
+        this.removeTile({row:oneTile.row,column:oneTile.column});
+        this.removeTile({row:secondTile.row,column:secondTile.column});
+        oneTile.updateTileLocation(mergingLocation);
+        this.gameBoard[mergingLocation.row][mergingLocation.column]=tilesArray;
+        // console.log(this.gameBoard);
+        
+    }    
+    this.mergeAll=function(direction){
+        switch (direction){
+            case directions.RIGHT:
+                for (let column=3;column>=0;column--){
+                    for (let row=0;row<=3;row++){
+                        let currentLocation={row: row,column: column};
+                        if(!this.isCellEmpty(currentLocation))
+                            this.mergeSingle(direction,currentLocation);    
+                    }
+                }
+                break;
+            case directions.LEFT:
                 for (let column=0;column<=3;column++){
-                    let currentLocation={row: row,column: column}
-                    if(!this.isCellEmpty(currentLocation)){
-                        // if(this.isTileCanMoveByDirection({row: row,column: column},direction)){
-                           // console.log(this.isTileCanMoveByDirection({row: row,column: column},direction));
-                           
-                           this.moveSingle(direction,currentLocation);
-
-                        // }
-                       
+                    for (let row=0;row<=3;row++){
+                        let currentLocation={row: row,column: column};
+                        if(!this.isCellEmpty(currentLocation))
+                            this.mergeSingle(direction,currentLocation);    
+                    }
+                }
+                break;
+            case directions.UP:
+                for (let row=0;row<=3;row++){
+                    for (let column=0;column<=3;column++){
+                        let currentLocation={row: row,column: column};
+                        if(!this.isCellEmpty(currentLocation))
+                            this.mergeSingle(direction,currentLocation);    
+                    }
+                }
+                break;
+            case directions.DOWN:
+                for (let row=3;row>=0;row--){
+                    for (let column=0;column<=3;column++){
+                        let currentLocation={row: row,column: column};
+                        if(!this.isCellEmpty(currentLocation))
+                            this.mergeSingle(direction,currentLocation);    
+                    }
+                }
+                break;
+        }
+        // for (let row=0;row<=3;row++){
+        //     for (let column=0;column<=3;column++){
+        //         let currentLocation={row: row,column: column}
+        //         if(!this.isCellEmpty(currentLocation)){
+        //                this.mergeSingle(direction,currentLocation);
+        //         }
+        //     }
+        // }
+    }
+    this.cleanAllMergedTiles=function(){
+        for (let row=0;row<=3;row++){
+            for (let column=0;column<=3;column++){
+                let currentLocation={row: row,column: column}
+                if(Array.isArray(this.getTile(currentLocation))){
+                    let mergedArray=this.getTile(currentLocation);
+                    for (let tile of mergedArray){
+                        if (tile.isMerged){
+                            tile.isMerged=false;
+                            this.gameBoard[row][column]=tile;//if merge=>replace array with the merged tile
+                            break;
+                        }       
                     }
                 }
             }
-            
         }
-        this.updateTilesCollectionOrderByDirection(direction);
     }
+
+
     this.updateAllTilesLastLocation=function(){
         for (let row=0;row<=3;row++){
             for (let column=0;column<=3;column++){
@@ -213,8 +417,7 @@ function logic(){
             }
         }
     }
-
-    this.isDirectionMoveAvailable=function(direction){
+    this.isReduceAvailableByDirection=function(direction){
         let newRow,newColumn;
         for (let row=0;row<=3;row++){
             for (let column=0;column<=3;column++){
@@ -238,12 +441,66 @@ function logic(){
                         newColumn = location.column;
                         break;
                 }
-        
+                //if empty
+                if (newColumn<=3 && newColumn>=0 && newRow<=3 && newRow>=0)
+                    if (this.isCellEmpty({row: newRow,column: newColumn}))
+                        return true;
+                }
+            }
+            return false;
+        }
+    this.isMoveAvailableByDirection=function(direction){
+        let newRow,newColumn;
+        for (let row=0;row<=3;row++){
+            for (let column=0;column<=3;column++){
+                let location={row: row,column:column};
+                if(this.isCellEmpty(location)) continue;
+                switch (direction){
+                    case directions.RIGHT:
+                        newRow = location.row;
+                        newColumn = location.column+1;
+                        break;
+                    case directions.LEFT:
+                        newRow = location.row;
+                        newColumn = location.column-1;
+                        break;
+                    case directions.UP:
+                        newRow = location.row-1;
+                        newColumn = location.column;
+                        break;
+                    case directions.DOWN:
+                        newRow = location.row+1;
+                        newColumn = location.column;
+                        break;
+                }
+                
+                //if empty
                 if (newColumn<=3 && newColumn>=0 && newRow<=3 && newRow>=0)
                     if (this.isCellEmpty({row: newRow,column: newColumn})){
-                        //console.log(`row: ${newRow} column: ${newColumn}`);
                         return true;
                     }
+                
+                
+                //if can be merged
+                if (newColumn<=3 && newColumn>=0 && newRow<=3 && newRow>=0){
+                    let currentTile=this.getTile(location);
+                    console.log(currentTile);
+                    let adjacentLocation={row: newRow,column: newColumn};
+                    let adjacentTile=this.getTile(adjacentLocation);
+                    console.log(adjacentTile);
+                    if (currentTile!==null && adjacentTile!==null){
+                        if (Array.isArray(currentTile))
+                            currentTile=currentTile.find(tile => tile.isMerged);
+                        if (Array.isArray(adjacentTile))
+                            adjacentTile=adjacentTile.find(tile => tile.isMerged);
+                    }
+                        if (parseInt(currentTile.value)===parseInt(adjacentTile.value)){
+                            console.log('true');
+                            return true;
+                        }
+                }
+                    
+                
             }
             
         }
@@ -287,7 +544,7 @@ function logic(){
         return tilesCollection;
     }
     this.tilesCollectionOrderByDirection=[];
-    this.updateTilesCollectionOrderByDirection=function(direction){
+    this.updateTilesCollectionOrderedByDirection=function(direction){
         let tilesCollection=[];
         switch (direction){
             case directions.RIGHT:
@@ -338,10 +595,8 @@ function Tile(location, value) {
     this.row=location.row;
     this.column=location.column;
     this.value = value;
-
+    this.isMerged = null;//the new tile that created after merging
     this.lastLocation = null;
-    //this.merged
-
 
     this.updateTileLocation=function(location){
         this.row=location.row;
@@ -377,17 +632,11 @@ const directions={
 const game=new logic();
 initGrid();
 game.addRandomTile();
-updateNewTile(game);
-// game.moveAll(direction);
+game.addRandomTile();
+createNewTile(game);
+
 console.log(game.gameBoard);
-// window.addEventListener('click',()=>{
-//     game.addRandomTile();
-//     updateBoard(game.gameBoard);
-// })
 
-
-
-let isLeft=true;
 const tilesContainer=document.getElementById('tiles-container');
 
 
@@ -411,25 +660,36 @@ window.addEventListener('keydown', function(event) {
             direction = directions.DOWN;
             break; 
     }
-    if (game.isDirectionMoveAvailable(direction)){
-        game.moveAll(direction);
+    if (game.isMoveAvailableByDirection(direction)){
+        
+        cleanMergedTiles(game.gameBoard);
+        game.cleanAllMergedTiles();
+        game.updateAllTilesLastLocation();
+        game.reduceAll(direction);
+        
+        game.mergeAll(direction);
+        
+        game.updateTilesCollectionOrderedByDirection(direction);
+        game.reduceAll(direction);
+        
         updateBoard(game);
+        
+        
+        
         game.addRandomTile();
-        updateNewTile(game);
+        createNewTile(game);
+        
+        
+        game.updateTilesCollectionOrderedByDirection(direction);
+
         console.log(game.gameBoard);
     }
     else{
-        console.log('GAME OVER');
+        console.log('NO!');
         
     }
     
     
-})
-
-window.addEventListener('keydown', function(event) {
-    // if(event.code==='Space')
-        // game.addRandomTile();
-        // updateBoard(game.gameBoard);
 })
 
 

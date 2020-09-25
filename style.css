@@ -114,9 +114,7 @@ body{
 }
 
 
-.merged-tile{
-    animation: merged-animation 200ms;
-}
+
 
 .tile{
     
@@ -151,24 +149,46 @@ body{
     background: #ede0c8;;
     color:#776e65;
 }
-.tile-8{
+.tile-8 .tile-internal{
     color: #f9f6f2;
-    background: #f2b179; }
+    background: #f2b179;
 }
-.tile-16{
-    
+.tile-16 .tile-internal{
+    color: #f9f6f2;
+    background: #f59563;
 }
-.tile-32{
-    
+.tile-32 .tile-internal{
+    color: #f9f6f2;
+    background: #f67c5f;
 }
-#tile-64{
-    
+.tile-64 .tile-internal{
+    color: #f9f6f2;
+    background: #f65e3b;
 }
-.tile-128{
-    
+.tile-128 .tile-internal{
+    color: #f9f6f2;
+    background: #edcf72;
+    /* font-size */
 }
-.tile-256{
-    
+.tile-256 .tile-internal{
+    color: #f9f6f2;
+    background: #edcc61;
+}
+.tile-512 .tile-internal{
+    color: #f9f6f2;
+    background: #edc850;
+}
+.tile-1024 .tile-internal{
+    color: #f9f6f2;
+    background: #edc53f;
+}
+.tile-2048 .tile-internal{
+    color: #f9f6f2;
+    background: #edc22e;
+}
+.tile-2048-plus .tile-internal{
+    color: #f9f6f2;
+    background: #3c3a32;
 }
 
 
@@ -220,6 +240,28 @@ body{
 }
 
 
+@keyframes merged-animation{
+    0%{
+        transform: scale(1);
+    }
+    50%{
+        transform: scale(1.2);
+    }
+    100%{
+        transform: scale(1);
+    }
+}
+.merged-tile .tile-internal{
+    animation: merged-animation 200ms;
+    z-index: 10;
+}
+
+
+
+
+
+
+
 @font-face{
     font-family: "Clear Sans";
     src: url(./clear-sans.regular.ttf);
@@ -232,14 +274,3 @@ body{
 
 
 
-@keyframes merged-animation{
-    0%{
-        transform: scale(1);
-    }
-    50%{
-        transform: scale(1.2);
-    }
-    100%{
-        transform: scale(1);
-    }
-}

@@ -20,6 +20,12 @@ body{
     margin: 70px auto;
     
 }
+
+#game-container{
+    height: 500px;
+    width: 500px;
+}
+
 #scores-container{
     display: flex;
     justify-content: space-between;
@@ -101,7 +107,41 @@ body{
     font-size: 1.2rem;
 }
 
+#try-again-button{
+    color:#f9f6f2;
+    background-color:#8f7a66;
+    cursor: pointer;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    font-weight: bold;
+    border: 0;
+    border-radius: 4px;
+    font-size: 1.2rem;
+    margin-top: 0.3rem;
+    /* animation: game-over-move-up 800ms ease-in-out 900ms;
+    animation-fill-mode: forwards; */
+}
 
+#gameover-message{
+    position: absolute;
+    height: 500px;
+    width: 100%;
+    z-index: 100;
+    background-color: rgba(238, 228, 218, 0.73);
+    text-align: center;
+    animation: game-over-opacity 900ms ease ;
+    animation-fill-mode: forwards;
+}
+
+#gameover-message p{
+    font-family: 'Clear Sans Bold';
+    font-size: 4rem;
+    margin-top: 30%;
+    color: #776e65;
+    animation: game-over-move-up 800ms ease 800ms;
+    animation-fill-mode: forwards;
+
+}
 
 
 #game-grid{
@@ -184,27 +224,32 @@ body{
 .tile-128 .tile-internal{
     color: #f9f6f2;
     background: #edcf72;
-    /* font-size */
+    font-size:3rem;
 }
 .tile-256 .tile-internal{
     color: #f9f6f2;
     background: #edcc61;
+    font-size:3rem;
 }
 .tile-512 .tile-internal{
     color: #f9f6f2;
     background: #edc850;
+    font-size:3rem;
 }
 .tile-1024 .tile-internal{
     color: #f9f6f2;
     background: #edc53f;
+    font-size:2.5rem;
 }
 .tile-2048 .tile-internal{
     color: #f9f6f2;
     background: #edc22e;
+    font-size:2.5rem;
 }
 .tile-2048-plus .tile-internal{
     color: #f9f6f2;
     background: #3c3a32;
+    font-size:2.5rem;
 }
 
 
@@ -293,9 +338,34 @@ body{
 }
 
 
+@keyframes game-over-opacity {
+    0% {
+      opacity: 0;
+    }
+  
+    100% {
+      opacity: 1;
+    } 
+}
 
-
-
+@keyframes game-over-move-up {
+    0% {
+      margin-top: 30%;
+    }
+  
+    100% {
+        margin-top: 20%;
+    } 
+}
+@keyframes try-again-move-up {
+    0% {
+      margin-top: 40%;
+    }
+  
+    100% {
+        margin-top: 20%;
+    } 
+}
 
 
 

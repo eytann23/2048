@@ -1,153 +1,179 @@
 //UI
-const initGrid=function(){
-    const gameGrid=document.getElementById('game-grid');
-    for (let row=0;row<=3;row++){
-        for (let column=0;column<=3;column++){
-            const cell=document.createElement('div');
-            //const cellId=`location-${row}-${column}`;
-            //cell.setAttribute('id',cellId);
-            cell.classList.add('cell');
-            gameGrid.appendChild(cell);
+const gameUI=function(){
+    this.initGrid=function(){
+        const gameGrid=document.getElementById('game-grid');
+        for (let row=0;row<=3;row++){
+            for (let column=0;column<=3;column++){
+                const cell=document.createElement('div');
+                //const cellId=`location-${row}-${column}`;
+                //cell.setAttribute('id',cellId);
+                cell.classList.add('cell');
+                gameGrid.appendChild(cell);
+            }
+            
         }
-        
     }
-}
+    this.cleanBoard=function(){
+        const gameGrid=document.getElementById('game-grid');
+        const tilesContainer=document.getElementById('tiles-container');
+        gameGrid.innerHTML='';
+        tilesContainer.innerHTML='';
+    }
+    this.updateBoard=function(game){
+        console.log('_________');
+        const tilesCollection=game.tilesCollectionOrderByDirection;//updated tiles info
     
-const updateBoard=function(game){
-    console.log('_________');
-    const tilesCollection=game.tilesCollectionOrderByDirection;//updated tiles info
-
+        
     
-
-    const tilesContainer=document.getElementById('tiles-container');
-    let tilesElements=tilesContainer.childNodes;
-    
-    for (let tileInfo of tilesCollection){
-        if (Array.isArray(tileInfo)){//if that's a megred tile
-            for (let tile of tileInfo){//here tileInfo is an array of 2 merged tiles plus a new one (example: 8,8,16)
-                let lastLocation=tile.lastLocation;
-                if (lastLocation!==null){
-                    let lastLocationStr=(`tile-location-${lastLocation.column}-${lastLocation.row}`);
-                    for (let tileElement of tilesElements){
-                        for (let className of tileElement.classList){
-                            if(className===lastLocationStr){
-                                tileElement.classList.remove(className);
-                                let newLocationStr=`tile-location-${tile.column}-${tile.row}`;
-                                tileElement.classList.add(newLocationStr);
-                            }    
+        const tilesContainer=document.getElementById('tiles-container');
+        let tilesElements=tilesContainer.childNodes;
+        
+        for (let tileInfo of tilesCollection){
+            if (Array.isArray(tileInfo)){//if that's a megred tile
+                for (let tile of tileInfo){//here tileInfo is an array of 2 merged tiles plus a new one (example: 8,8,16)
+                    let lastLocation=tile.lastLocation;
+                    if (lastLocation!==null){
+                        let lastLocationStr=(`tile-location-${lastLocation.column}-${lastLocation.row}`);
+                        for (let tileElement of tilesElements){
+                            for (let className of tileElement.classList){
+                                if(className===lastLocationStr){
+                                    tileElement.classList.remove(className);
+                                    let newLocationStr=`tile-location-${tile.column}-${tile.row}`;
+                                    tileElement.classList.add(newLocationStr);
+                                }    
+                            }
                         }
                     }
-                }
-                else{//new merge
+                    else//new merge   
+                        this.createMergedTile(tile);
                     
-                    createMergedTile(tile);
-                }
-                
-            }
-        }
-        else{//if regular
-            let lastLocation=tileInfo.lastLocation;
-            let lastLocationStr=(`tile-location-${lastLocation.column}-${lastLocation.row}`);
-            for (let tileElement of tilesElements){
-                for (let className of tileElement.classList){
-                    if(className===lastLocationStr){
-                        tileElement.classList.remove(className);
-                        let newLocationStr=`tile-location-${tileInfo.column}-${tileInfo.row}`;
-                        tileElement.classList.add(newLocationStr);
-                    }    
                 }
             }
+            else{//if regular
+                let lastLocation=tileInfo.lastLocation;
+                let lastLocationStr=(`tile-location-${lastLocation.column}-${lastLocation.row}`);
+                for (let tileElement of tilesElements){
+                    for (let className of tileElement.classList){
+                        if(className===lastLocationStr){
+                            tileElement.classList.remove(className);
+                            let newLocationStr=`tile-location-${tileInfo.column}-${tileInfo.row}`;
+                            tileElement.classList.add(newLocationStr);
+                        }    
+                    }
+                }
+            }
+            
         }
+    
         
     }
-
     
-}
-
-const cleanMergedTiles=function(gameBoardArray){
-    //remove class 'tile-merged'
-    //remove the tiles that created the merged tile
-    let removeElements=[];
-    for (let row=0;row<=3;row++){
-        for(let column=0;column<=3;column++){//run all over the board
-            let currentCell=gameBoardArray[row][column];
-            if (currentCell!==null){//if tile
-                if(Array.isArray(currentCell)){//if array
-                    let tile=currentCell[0];
-                            let locationStr=(`tile-location-${tile.column}-${tile.row}`);
-                            const tilesContainer=document.getElementById('tiles-container');
-                            for (let tileElement of tilesContainer.childNodes){
-                                if(tileElement.classList.contains(locationStr)){
-                                    if(!(tileElement.classList.contains('merged-tile'))){
-                                        removeElements.push(tileElement);
+    this.cleanMergedTiles=function(gameBoardArray){
+        //remove class 'tile-merged'
+        //remove the tiles that created the merged tile
+        let removeElements=[];
+        for (let row=0;row<=3;row++){
+            for(let column=0;column<=3;column++){//run all over the board
+                let currentCell=gameBoardArray[row][column];
+                if (currentCell!==null){//if tile
+                    if(Array.isArray(currentCell)){//if array
+                        let tile=currentCell[0];
+                                let locationStr=(`tile-location-${tile.column}-${tile.row}`);
+                                const tilesContainer=document.getElementById('tiles-container');
+                                for (let tileElement of tilesContainer.childNodes){
+                                    if(tileElement.classList.contains(locationStr)){
+                                        if(!(tileElement.classList.contains('merged-tile'))){
+                                            removeElements.push(tileElement);
+                                        }
                                     }
                                 }
-                            }
-                     
+                         
+                    }
                 }
+                  
             }
-              
+        }
+        for (let element of removeElements){
+            element.remove();
+        }
+        const tilesContainer=document.getElementById('tiles-container');
+        for (let tileElement of tilesContainer.childNodes){
+            tileElement.classList.remove('merged-tile');
         }
     }
-    for (let element of removeElements){
-        element.remove();
+    
+    this.cleanNewTileClass=function(){
+        const tilesContainer=document.getElementById('tiles-container');
+        for (let tileElement of tilesContainer.childNodes){
+            tileElement.classList.remove(`new-tile`);
+        }
     }
-    const tilesContainer=document.getElementById('tiles-container');
-    for (let tileElement of tilesContainer.childNodes){
-        tileElement.classList.remove('merged-tile');
+    this.createNewTile=function(game){
+        this.cleanNewTileClass();
+        const tilesCollection=game.getTilesCollection();//updated tiles info
+        const tilesContainer=document.getElementById('tiles-container');
+        // let tilesElements=tilesContainer.childNodes;
+        for (let tileInfo of tilesCollection){
+            let lastLocation=tileInfo.lastLocation;
+            //new
+            if(lastLocation===null){
+                const tile=document.createElement('div');
+                tile.classList.add(`tile`);
+                tile.classList.add(`tile-${tileInfo.value}`);
+                tile.classList.add(`tile-location-${tileInfo.column}-${tileInfo.row}`);
+                // if (tileInfo.isMerged)
+                //     tile.classList.add(`merged-tile`);
+                // else
+                    tile.classList.add(`new-tile`);
+    
+                const tileInternal=document.createElement('div');
+                tileInternal.innerHTML=parseInt(tileInfo.value);
+                tileInternal.classList.add('tile-internal');
+                tile.appendChild(tileInternal);
+                tilesContainer.appendChild(tile);
+            }
+        }
     }
-}
+    
+    this.createMergedTile=function(tile){
+        let locationStr=(`tile-location-${tile.column}-${tile.row}`);
+        const tilesContainer=document.getElementById('tiles-container');
+        const newTileElement=document.createElement('div');
+        newTileElement.classList.add(`tile`);
+        newTileElement.classList.add(`tile-${tile.value}`);
+        newTileElement.classList.add(locationStr);
+        newTileElement.classList.add(`merged-tile`);
+    
+        const tileInternal=document.createElement('div');
+        tileInternal.innerHTML=parseInt(tile.value);
+        tileInternal.classList.add('tile-internal');
+        newTileElement.appendChild(tileInternal);
+        tilesContainer.appendChild(newTileElement);
+    }
+    this.updateScores=function(score,best){
+        const scoreElement=document.getElementById('score-value');
+        const bestElement=document.getElementById('best-value');
 
-const cleanNewTileClass=function(){
-    const tilesContainer=document.getElementById('tiles-container');
-    for (let tileElement of tilesContainer.childNodes){
-        tileElement.classList.remove(`new-tile`);
-    }
-}
-const createNewTile=function(game){
-    cleanNewTileClass();
-    const tilesCollection=game.getTilesCollection();//updated tiles info
-    const tilesContainer=document.getElementById('tiles-container');
-    // let tilesElements=tilesContainer.childNodes;
-    for (let tileInfo of tilesCollection){
-        let lastLocation=tileInfo.lastLocation;
-        //new
-        if(lastLocation===null){
-            const tile=document.createElement('div');
-            tile.classList.add(`tile`);
-            tile.classList.add(`tile-${tileInfo.value}`);
-            tile.classList.add(`tile-location-${tileInfo.column}-${tileInfo.row}`);
-            // if (tileInfo.isMerged)
-            //     tile.classList.add(`merged-tile`);
-            // else
-                tile.classList.add(`new-tile`);
+        let scoreAdditionValue=score-parseInt(scoreElement.innerHTML);
+        this.createPointsAdditionLabel(scoreAdditionValue);
 
-            const tileInternal=document.createElement('div');
-            tileInternal.innerHTML=parseInt(tileInfo.value);
-            tileInternal.classList.add('tile-internal');
-            tile.appendChild(tileInternal);
-            tilesContainer.appendChild(tile);
+        scoreElement.innerHTML=score;
+        bestElement.innerHTML=best;
+    }
+    this.createPointsAdditionLabel=function(additionValue){
+        if(additionValue>0){
+            const pointsAdditionLabel=document.createElement('div');
+            pointsAdditionLabel.innerHTML=`+${additionValue}`;
+
+            const scoreContainer=document.getElementById('score-container');
+            const currentPointsAdditionLabel=document.getElementById('points-addition');
+            if (currentPointsAdditionLabel)
+                scoreContainer.removeChild(currentPointsAdditionLabel);
+            pointsAdditionLabel.id='points-addition';
+            scoreContainer.appendChild(pointsAdditionLabel);
         }
     }
 }
-
-const createMergedTile=function(tile){
-    let locationStr=(`tile-location-${tile.column}-${tile.row}`);
-    const tilesContainer=document.getElementById('tiles-container');
-    const newTileElement=document.createElement('div');
-    newTileElement.classList.add(`tile`);
-    newTileElement.classList.add(`tile-${tile.value}`);
-    newTileElement.classList.add(locationStr);
-    newTileElement.classList.add(`merged-tile`);
-
-    const tileInternal=document.createElement('div');
-    tileInternal.innerHTML=parseInt(tile.value);
-    tileInternal.classList.add('tile-internal');
-    newTileElement.appendChild(tileInternal);
-    tilesContainer.appendChild(newTileElement);
-}
-
-
 
 
 
@@ -165,7 +191,9 @@ const createMergedTile=function(tile){
 
 
 //Logic
-function logic(){
+function logic(best){
+    this.score=0;
+    this.best=best;
     this.gameBoard=[
         [null,null,null,null],
         [null,null,null,null],
@@ -320,6 +348,7 @@ function logic(){
             return;
         if (parseInt(currentTile.value)===parseInt(adjacentTile.value)){
             this.mergeTiles(currentTile,adjacentTile,adjacentLocation);
+            this.score+=(parseInt(currentTile.value))*2;
             console.log("Merged!");
         }
 
@@ -484,10 +513,10 @@ function logic(){
                 //if can be merged
                 if (newColumn<=3 && newColumn>=0 && newRow<=3 && newRow>=0){
                     let currentTile=this.getTile(location);
-                    console.log(currentTile);
+
                     let adjacentLocation={row: newRow,column: newColumn};
                     let adjacentTile=this.getTile(adjacentLocation);
-                    console.log(adjacentTile);
+
                     if (currentTile!==null && adjacentTile!==null){
                         if (Array.isArray(currentTile))
                             currentTile=currentTile.find(tile => tile.isMerged);
@@ -495,7 +524,6 @@ function logic(){
                             adjacentTile=adjacentTile.find(tile => tile.isMerged);
                     }
                         if (parseInt(currentTile.value)===parseInt(adjacentTile.value)){
-                            console.log('true');
                             return true;
                         }
                 }
@@ -629,15 +657,21 @@ const directions={
 
 
 //Main
-const game=new logic();
-initGrid();
-game.addRandomTile();
-game.addRandomTile();
-createNewTile(game);
+let game;
+let gameGUI;
+function newGame(){
+    game=new logic(game===undefined?0:game.best);
+    gameGUI=new gameUI();
+    gameGUI.updateScores(0,game.best);
+    gameGUI.initGrid();
+    game.addRandomTile();
+    game.addRandomTile();
+    gameGUI.createNewTile(game);
+}
 
+newGame();
 console.log(game.gameBoard);
 
-const tilesContainer=document.getElementById('tiles-container');
 
 
 
@@ -662,7 +696,7 @@ window.addEventListener('keydown', function(event) {
     }
     if (game.isMoveAvailableByDirection(direction)){
         
-        cleanMergedTiles(game.gameBoard);
+        gameGUI.cleanMergedTiles(game.gameBoard);
         game.cleanAllMergedTiles();
         game.updateAllTilesLastLocation();
         game.reduceAll(direction);
@@ -672,17 +706,22 @@ window.addEventListener('keydown', function(event) {
         game.updateTilesCollectionOrderedByDirection(direction);
         game.reduceAll(direction);
         
-        updateBoard(game);
+        gameGUI.updateBoard(game);
         
         
         
         game.addRandomTile();
-        createNewTile(game);
+        gameGUI.createNewTile(game);
         
         
         game.updateTilesCollectionOrderedByDirection(direction);
 
+        if(game.score>game.best)
+            game.best=game.score;
         console.log(game.gameBoard);
+        gameGUI.updateScores(game.score,game.best);
+        console.log('Score: ',game.score);
+        console.log('Best: ',game.best);
     }
     else{
         console.log('NO!');
@@ -693,6 +732,11 @@ window.addEventListener('keydown', function(event) {
 })
 
 
-
+const newGameButton=document.getElementById('new-game-button');
+newGameButton.addEventListener('click',()=>{
+    gameGUI.cleanBoard();
+    gameGUI.updateScores(0,game.best);
+    newGame();
+})
 
 

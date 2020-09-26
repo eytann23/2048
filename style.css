@@ -6,6 +6,7 @@ html{
     
 }
 body{
+    
     background-color: #faf8ef;
 
 
@@ -16,29 +17,44 @@ body{
 #general-container{
     position: relative;
     width: 500px;
-    margin: 0 auto;
+    margin: 70px auto;
     
 }
 #scores-container{
-    height: 50%;
+    display: flex;
+    justify-content: space-between;
+    /* height: 50%; */
     width: auto;
     position: relative;
     float: right;
     margin-top: 1rem;
     
 }
-#score, #best{
-    display: inline;
+#score-container, #best-container{
 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
     font-weight: 700;
-    font-size: 1.5rem;
-    margin-left: 0.1rem;
 
-    padding: 0.5rem 1.5rem;
+    margin-left: 0.1rem;
+    
+    padding: 0.1rem 1rem;
     color: white;
     border-radius: 5px;
     background-color:#bbada0;
     
+}
+
+#score-label, #best-label{
+  
+  font-family: "Clear Sans";
+  font-size:0.8rem;
+  color:#eee4da;
+}
+#score-value, #best-value{
+    font-size:1.5rem;
 }
 
 #header{
@@ -255,6 +271,27 @@ body{
     animation: merged-animation 200ms;
     z-index: 10;
 }
+
+@keyframes points-addition {
+    0% {
+      top: 1.5rem;
+      opacity: 1;
+    }
+  
+    100% {
+      top: -3rem;
+      opacity: 0;
+    } 
+}
+
+#points-addition{
+    position: absolute;
+    font-size: 1.5rem;
+    color: rgb(119, 110, 101);
+    animation: points-addition 800ms ease-in-out;
+    animation-fill-mode: forwards;
+}
+
 
 
 
